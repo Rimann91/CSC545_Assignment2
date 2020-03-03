@@ -1,3 +1,11 @@
+/*
+William Hughes
+CSC 545
+Assignment #2
+
+Histograms of images
+*/
+
 PImage img;
 int[] redBins = new int[256];
 int[] greenBins;
@@ -41,16 +49,29 @@ void drawHist(String binColor){
 }
 
 void keyReleased(){
-    if (key == 'h'){
+    if (key == 1){}
+    else if (key == 2){}
+    else if (key == 3){}
+    else if (key == 'h'){
         getBins("red");
-        getBins("green");
-        getBins("blue");
-        drawHist("red");
-        drawHist("green");
-        drawHist("blue");
+        //getBins("green");
+        //getBins("blue");
+        /drawHist("red");
+        //drawHist("green");
+        //drawHist("blue");
     }
+    else if (key == 's'){}
+    else if (key == 'e'){}
 }
 
+// Processing functions
 
+void imgStretch(){}
 
+void imgEqualize(){}
 
+void histoOriginal(){}
+
+void histoStretch(){}
+
+void histoEqualize(){}
