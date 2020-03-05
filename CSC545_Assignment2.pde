@@ -16,6 +16,9 @@ color red = color(255,0,0);
 color green = color(0,255,0);
 color blue = color(0,0,255);
 
+boolean histDisplay = false;
+boolean imgDisplay = false;
+
 void setup(){
     size(400,400);
     surface.setResizable(true);
@@ -23,9 +26,26 @@ void setup(){
     img =originalImg;
     //img = loadImage("th.jpg");
     surface.setSize(img.width,img.height);
+    image(img,0,0);
 }
 
 void draw(){
+    if(keyPressed){
+        if (key == 'h' || key == 's' || key == 'e'){
+            histDisplay = true;
+        }
+        else if (key == '1' || key == '2' || key == '3'){
+            imgDisplay = true;
+        }
+        if (histDisplay){
+            surface.setSize(840, height);
+            histDisplay = false;
+        }
+        else if (imgDisplay){
+            surface.setSize(img.width, img.height);
+            imgDisplay = false;
+        }
+    }
 }
 
 void getBins(){
@@ -37,7 +57,7 @@ void getBins(){
 
     for (int x = 0; x < img.width; x++){
         for (int y = 0; y < img.height; y++){
-            c = get(x,y);
+            c = img.get(x,y);
             redBins[int(red(c))]++;
             greenBins[int(green(c))]++;
             blueBins[int(blue(c))]++;
@@ -48,8 +68,9 @@ void getBins(){
 void drawHist(){
     int[] bin = new int[256];
     int maximum_value = 0;
-    int rPos = 20, gPos = rPos+256, bPos = gPos+256;
+    int rPos = 20, gPos = rPos+276, bPos = gPos+276;
     int value;
+
 
     if (max(redBins) > maximum_value) maximum_value = max(redBins);
     if (max(greenBins) > maximum_value) maximum_value = max(greenBins);
@@ -74,28 +95,35 @@ void drawHist(){
 void keyReleased(){
     if (key == '1'){
         clear();
-        //surface.setSize(img.width, img.height);
         image(img,0,0);
         getBins();
-
+        imgDisplay = true;
     }
     else if (key == '2'){
-        //clear();
-        image(imgStretch(),0,0);
-    }
-    else if (key == '3'){}
-    else if (key == 'h'){
         clear();
-        //surface.setSize(img.width*3, height);
+        image(imgStretch(),0,0);
+        getBins();
+        imgDisplay = true;
+    }
+    else if (key == '3'){
+        image(imgEqualize(),0,0);
+        getBins();
+        imgDisplay = true;
+    }
+    else if (key == 'h'){
+        img = originalImg;
+        getBins();
+        clear();
         drawHist();
+        histDisplay = true;
     }
     else if (key == 's'){
         img = imgStretch();
         getBins();
-        //surface.setSize(img.width*3, img.height);
         clear();
         drawHist();
         img = originalImg;
+        histDisplay = true;
     }
     else if (key == 'e'){}
 }
@@ -155,8 +183,56 @@ int findMax(int[] inArray){
     return max;
 }
 
-void imgEqualize(){}
+PImage imgEqualize(){
 
+    PImage outImage = createImage(img.width, img.height, RGB);
+
+    // What is the point of PMF? Tutorial says it needs to be calculated
+    // But it never explains what to use it for
+
+    float rPMF = sumArray(redBins)/255;
+    float gPMF = sumArray(greenBins)/255;
+    float bPMF = sumArray(blueBins)/255;
+
+    float[] rCDF = getCDF(redBins);
+    float[] gCDF = getCDF(greenBins);
+    float[] bCDF = getCDF(blueBins);
+
+    for (int x = 0; x < img.width; x++){
+        for (int y = 0; y < img.height; y++){
+            color newc;
+            color oldc = img.get(x,y);
+            int oldr = int(red(oldc));
+            int oldg = int(green(oldc));
+            int oldb = int(blue(oldc));
+
+            newc = color(int(ceil(rCDF[oldr]*244)), int(ceil(gCDF[oldg]*244)), int(ceil(bCDF[oldb]*244)));
+            outImage.set(x,y,newc);
+        }
+    }
+    return outImage;
+}
+
+float[] getCDF(int[]inHist){
+    float[] outHist = new float[inHist.length];
+    float max_value;
+    for (int i = 1 ; i < inHist.length; i++){
+        outHist[i] = outHist[i-1]+inHist[i];
+    }
+    max_value = max(outHist);
+    for (int i = 0; i < outHist.length; i++){
+        outHist[i] = outHist[i]/max_value;
+    }
+    return outHist;
+}
+
+int sumArray(int[] inArray){
+    int sum = 0;
+    for (int i = 0; i < inArray.length; i++){
+        sum += inArray[i];
+    }
+    return sum;
+}
 void histoOriginal(){}
 
 void histoStretch(){}
