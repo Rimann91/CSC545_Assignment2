@@ -19,17 +19,24 @@ color blue = color(0,0,255);
 boolean histDisplay = false;
 boolean imgDisplay = false;
 
+String displayText = "press '1' for original image \n press '2' for stretched image \n press '3' for equalized image \n"+
+                    "press 'i' for original histogram \n press 's' for stretched histogram \n press 'e' for equalized histogram";
+
 void setup(){
     size(400,400);
     surface.setResizable(true);
     originalImg = loadImage("baboon.png");
-    img =originalImg;
+    img = originalImg;
     //img = loadImage("th.jpg");
     surface.setSize(img.width,img.height);
-    image(img,0,0);
+    background(0);
+    textSize(32);
+    textAlign(CENTER, TOP);
 }
 
 void draw(){
+
+    text(displayText, width/2, 0);
     if(keyPressed){
         if (key == 'h' || key == 's' || key == 'e'){
             histDisplay = true;
@@ -98,17 +105,20 @@ void keyReleased(){
         image(img,0,0);
         getBins();
         imgDisplay = true;
+        displayText = "original image";
     }
     else if (key == '2'){
         clear();
         image(imgStretch(),0,0);
         getBins();
         imgDisplay = true;
+        displayText = "stretched image";
     }
     else if (key == '3'){
         image(imgEqualize(),0,0);
         getBins();
         imgDisplay = true;
+        displayText = "equalized image";
     }
     else if (key == 'h'){
         img = originalImg;
@@ -116,6 +126,7 @@ void keyReleased(){
         clear();
         drawHist();
         histDisplay = true;
+        displayText = "original histogram";
     }
     else if (key == 's'){
         img = imgStretch();
@@ -124,8 +135,17 @@ void keyReleased(){
         drawHist();
         img = originalImg;
         histDisplay = true;
+        displayText = "stretched histogram";
     }
-    else if (key == 'e'){}
+    else if (key == 'e'){
+        img = imgEqualize();
+        getBins();
+        clear();
+        drawHist();
+        img = originalImg;
+        histDisplay = true;
+        displayText = "equalized histogram";
+    }
 }
 
 // Processing functions
