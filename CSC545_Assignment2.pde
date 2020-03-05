@@ -7,33 +7,25 @@ Histograms of images
 */
 
 PImage img;
+PImage originalImg;
 int[] redBins;
 int[] greenBins;
 int[] blueBins;
 
+color red = color(255,0,0);
+color green = color(0,255,0);
+color blue = color(0,0,255);
+
 void setup(){
     size(400,400);
     surface.setResizable(true);
-    img = loadImage("baboon.png");
+    originalImg = loadImage("baboon.png");
+    img =originalImg;
+    //img = loadImage("th.jpg");
     surface.setSize(img.width,img.height);
 }
 
 void draw(){
-    //if (keyPressed==true){
-    //    if (key == '1'){
-    //        clear();
-    //        image(img,0,0);
-    //    }
-    //    else if (key == 'h'){
-    //        getBins("red");
-    //        clear();
-    //        //getBins("green");
-    //        //getBins("blue");
-    //        drawHist("red");
-    //        //drawHist("green");
-    //        //drawHist("blue");
-    //    }
-    //}
 }
 
 void getBins(){
@@ -53,70 +45,115 @@ void getBins(){
     }
 }
 
-void drawHist(String binColor){
+void drawHist(){
     int[] bin = new int[256];
-    if (binColor == "red") {
-        bin = redBins; 
-        stroke(255,0,0);
-    }
-    if (binColor == "green"){
-        bin = greenBins; 
-        stroke(0,255,0);
-    }
-    if (binColor == "blue"){ 
-        bin = blueBins; 
-        stroke(0,0,255);
-    }
-//    int histMax = max(bin);
-//    for (int i = 0; i <= width; i+=2){
-//        int which = int(map(i, 0, img.width, 0, 255));
-//        int y = int(map(bin[which], 0, histMax, img.height, 0));
-//        line(i, img.height, i, y);
-//    }
-    for (int i = 0; i < 256; i++){
-        int y = bin[i];
-        int x = i;
-        line(i,img.height,i,y);
+    int maximum_value = 0;
+    int rPos = 20, gPos = rPos+256, bPos = gPos+256;
+    int value;
+
+    if (max(redBins) > maximum_value) maximum_value = max(redBins);
+    if (max(greenBins) > maximum_value) maximum_value = max(greenBins);
+    if (max(blueBins) > maximum_value) maximum_value = max(blueBins);
+
+    for (int i = 0; i < 256; i+=1){
+        // Map i (from 0..img.width) to a location in the histogram (0..255)
+        value = int(map(redBins[i], 0, maximum_value, 0, height/2));
+        stroke(red);
+        line(i+rPos, height, i+rPos, height-value);
+
+        value = int(map(greenBins[i], 0, maximum_value, 0, height/2));
+        stroke(green);
+        line(i+gPos, height, i+gPos, height-value);
+
+        value = int(map(blueBins[i], 0, maximum_value, 0, height/2));
+        stroke(blue);
+        line(i+bPos, height, i+bPos, height-value);
     }
 }
-
-// SOME COMMMENTS
 
 void keyReleased(){
     if (key == '1'){
         clear();
+        //surface.setSize(img.width, img.height);
         image(img,0,0);
         getBins();
 
     }
-    else if (key == '2'){}
+    else if (key == '2'){
+        //clear();
+        image(imgStretch(),0,0);
+    }
     else if (key == '3'){}
     else if (key == 'h'){
         clear();
-        surface.setSize(width*3, height);
-        drawHist("red");
-        drawHist("green");
-        drawHist("blue");
+        //surface.setSize(img.width*3, height);
+        drawHist();
     }
-    else if (key == 's'){}
+    else if (key == 's'){
+        img = imgStretch();
+        getBins();
+        //surface.setSize(img.width*3, img.height);
+        clear();
+        drawHist();
+        img = originalImg;
+    }
     else if (key == 'e'){}
-    else if (key == 'r'){
-        clear();
-        drawHist("red");
-    }
-    else if (key == 'g'){
-        clear();
-        drawHist("green");
-    }
-    else if (key == 'b'){
-        clear();
-        drawHist("blue");
-    }
 }
 
 // Processing functions
 
-void imgStretch(){}
+PImage imgStretch(){
+    PImage outImg = createImage(img.width, img.height, RGB);
+    int minRed = findMin(redBins), maxRed = findMax(redBins);
+    int minGreen = findMin(greenBins), maxGreen = findMax(greenBins);
+    int minBlue =findMin(blueBins), maxBlue = findMax(blueBins);
+
+    println("red: "+str(minRed)+" - "+str(maxRed));
+    println("green: "+str(minGreen)+" - "+str(maxGreen));
+    println("blue: "+str(minBlue)+" - "+str(maxBlue));
+
+    for (int x = 0; x < outImg.width; x++){
+        for (int y = 0; y < outImg.height; y++){
+            color thisColor = img.get(x,y);
+
+            float thisRed = red(thisColor);
+            float thisGreen = green(thisColor);
+            float thisBlue = blue(thisColor);
+
+            int newRed = int(((thisRed-minRed)/(maxRed-minRed))*255);
+            //println("("+str(thisRed)+"-"+str(minRed)+")/("+str(maxRed)+"-"+str(minRed)+"))*255");
+            int newGreen = int(((thisGreen-minGreen)/(maxGreen-minGreen))*255);
+            int newBlue = int(((thisBlue-minBlue)/(maxBlue-minBlue))*255);
+
+            color newColor = color(newRed,newGreen,newBlue);
+
+            outImg.set(x,y,newColor);
+        }
+    }
+    return outImg;
+}
+
+int findMin(int[] inArray){
+    int min = 0;
+    for (int i = 0; i < inArray.length; i++){
+        if (inArray[i] != 0){
+            min = i;
+            return min;
+        }
+    }
+    return min;
+}
+
+int findMax(int[] inArray){
+    int max = inArray.length;
+    for (int i = inArray.length-1; i > 0; i--){
+        if (inArray[i] != 0){
+            max = i;
+            return max;
+        }
+    }
+    return max;
+}
 
 void imgEqualize(){}
 
